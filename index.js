@@ -130,7 +130,7 @@ app.post("/projects/:id/join", (req, res) => {
 /**
  * @swagger
  * /projects/{id}/leave:
- *   post:
+ *   delete:
  *     summary: Remove a participação de um usuário em um projeto
  *     parameters:
  *       - in: path
@@ -147,6 +147,8 @@ app.post("/projects/:id/join", (req, res) => {
  *             properties:
  *               userId:
  *                 type: integer
+ *             example:
+ *               userId: 1
  *     responses:
  *       200:
  *         description: Saída do projeto realizada com sucesso
@@ -155,11 +157,13 @@ app.post("/projects/:id/join", (req, res) => {
  *       404:
  *         description: Projeto não encontrado ou usuário não inscrito
  */
-app.post("/projects/:id/leave", (req, res) => {
+app.delete("/projects/:id/leave", (req, res) => {
   const projectId = parseInt(req.params.id);
-  const { userId } = req.body;
+  const userId = parseInt(req.body.userId);
 
-  if (!userId) return res.status(400).json({ error: "userId é obrigatório" });
+  if (!userId) {
+    return res.status(400).json({ error: "userId é obrigatório" });
+  }
 
   if (!projects.find((p) => p.id === projectId)) {
     return res.status(404).json({ error: "Projeto não encontrado" });
@@ -173,6 +177,11 @@ app.post("/projects/:id/leave", (req, res) => {
 
   // Remove o projeto da lista do usuário
   userProjects[userId] = userProjects[userId].filter((id) => id !== projectId);
+
+  // Remove array vazio (opcional)
+  if (userProjects[userId].length === 0) {
+    delete userProjects[userId];
+  }
 
   res.json({ message: "Você saiu do projeto com sucesso!" });
 });
