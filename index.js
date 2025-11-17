@@ -129,6 +129,56 @@ app.post("/projects/:id/join", (req, res) => {
 
 /**
  * @swagger
+ * /projects/{id}/leave:
+ *   post:
+ *     summary: Remove a participação de um usuário em um projeto
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               userId:
+ *                 type: integer
+ *     responses:
+ *       200:
+ *         description: Saída do projeto realizada com sucesso
+ *       400:
+ *         description: userId faltando
+ *       404:
+ *         description: Projeto não encontrado ou usuário não inscrito
+ */
+app.post("/projects/:id/leave", (req, res) => {
+  const projectId = parseInt(req.params.id);
+  const { userId } = req.body;
+
+  if (!userId) return res.status(400).json({ error: "userId é obrigatório" });
+
+  if (!projects.find((p) => p.id === projectId)) {
+    return res.status(404).json({ error: "Projeto não encontrado" });
+  }
+
+  if (!userProjects[userId] || !userProjects[userId].includes(projectId)) {
+    return res
+      .status(404)
+      .json({ error: "Usuário não estava inscrito neste projeto" });
+  }
+
+  // Remove o projeto da lista do usuário
+  userProjects[userId] = userProjects[userId].filter((id) => id !== projectId);
+
+  res.json({ message: "Você saiu do projeto com sucesso!" });
+});
+
+/**
+ * @swagger
  * /users/{id}/projects:
  *   get:
  *     summary: Lista projetos em que o usuário está inscrito
